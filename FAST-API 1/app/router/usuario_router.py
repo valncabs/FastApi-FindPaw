@@ -77,3 +77,4 @@ async def update_usuario(user_id: int, user: Usuario):
 @router.delete("/{user_id}")
 async def delete_usuario(user_id: int):
     return controller.delete(user_id)
+
