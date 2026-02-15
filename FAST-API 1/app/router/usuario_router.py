@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from controllers.usuario_controller import UsuarioController
 from models.usuario_model import Usuario
+from pydantic import BaseModel
 
 router = APIRouter(
     prefix="/usuarios",
@@ -8,6 +9,17 @@ router = APIRouter(
 )
 
 controller = UsuarioController()
+
+
+
+class LoginRequest(BaseModel):
+    usuario: str
+    contrasena: str
+
+
+@router.post("/login")
+async def login(data: LoginRequest):
+    return controller.login(data.usuario, data.contrasena)
 
 
 # =========================
@@ -27,19 +39,19 @@ async def create_usuario(user: Usuario):
 
 
 # =========================
-# GET BY ID
-# =========================
-@router.get("/{user_id}")
-async def get_usuario(user_id: int):
-    return controller.get_by_id(user_id)
-
-
-# =========================
 # GET ALL
 # =========================
 @router.get("/")
 async def get_usuarios():
     return controller.get_all()
+
+
+# =========================
+# GET BY ID
+# =========================
+@router.get("/{user_id}")
+async def get_usuario(user_id: int):
+    return controller.get_by_id(user_id)
 
 
 # =========================
@@ -65,11 +77,3 @@ async def update_usuario(user_id: int, user: Usuario):
 @router.delete("/{user_id}")
 async def delete_usuario(user_id: int):
     return controller.delete(user_id)
-
-
-# =========================
-# LOGIN
-# =========================
-@router.post("/login")
-async def login(usuario: str, contrasena: str):
-    return controller.login(usuario, contrasena)
