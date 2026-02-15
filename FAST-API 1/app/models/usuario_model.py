@@ -7,4 +7,6 @@ class Usuario(BaseModel):
     edad: int
     usuario: str
     correo: str
-    contrasena: str = Field(..., min_length=6, max_length=72)
+    contrasena: str = Field(..., min_length=6, max_length=60)
+
+
