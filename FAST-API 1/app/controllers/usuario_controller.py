@@ -27,7 +27,6 @@ class UsuarioController:
             conn = get_db_connection()
             cur = conn.cursor(cursor_factory=RealDictCursor)
 
-            # 🔐 Hashear contraseña
             hashed_password = hash_password(contrasena)
 
             cur.execute("""
@@ -60,6 +59,14 @@ class UsuarioController:
                 "mensaje": "Usuario creado correctamente"
             }
 
+        except psycopg2.errors.UniqueViolation:
+            if conn:
+                conn.rollback()
+            raise HTTPException(
+                status_code=400,
+                detail="El usuario, correo o cédula ya existe"
+            )
+
         except psycopg2.Error as e:
             if conn:
                 conn.rollback()
@@ -67,6 +74,7 @@ class UsuarioController:
                 status_code=500,
                 detail=f"Error al crear usuario: {str(e)}"
             )
+
         finally:
             if conn:
                 conn.close()
@@ -164,7 +172,6 @@ class UsuarioController:
             conn = get_db_connection()
             cur = conn.cursor(cursor_factory=RealDictCursor)
 
-            # Verificar existencia
             cur.execute(
                 "SELECT id FROM usuarios WHERE id = %s AND status = TRUE",
                 (user_id,)
@@ -176,7 +183,6 @@ class UsuarioController:
                     detail="Usuario no encontrado"
                 )
 
-            # 🔐 Hashear nueva contraseña
             hashed_password = hash_password(contrasena)
 
             cur.execute("""
@@ -205,13 +211,6 @@ class UsuarioController:
 
             return {"mensaje": "Usuario actualizado correctamente"}
 
-        except psycopg2.Error as e:
-            if conn:
-                conn.rollback()
-            raise HTTPException(
-                status_code=500,
-                detail=f"Error al actualizar usuario: {str(e)}"
-            )
         finally:
             if conn:
                 conn.close()
@@ -248,13 +247,6 @@ class UsuarioController:
 
             return {"mensaje": "Usuario eliminado correctamente"}
 
-        except psycopg2.Error as e:
-            if conn:
-                conn.rollback()
-            raise HTTPException(
-                status_code=500,
-                detail=f"Error al eliminar usuario: {str(e)}"
-            )
         finally:
             if conn:
                 conn.close()
@@ -283,7 +275,6 @@ class UsuarioController:
                     detail="Credenciales incorrectas"
                 )
 
-            # 🔐 Verificar contraseña
             if not verify_password(contrasena, user["contrasena"]):
                 raise HTTPException(
                     status_code=401,
